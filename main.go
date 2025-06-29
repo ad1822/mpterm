@@ -2,7 +2,6 @@ package main
 
 import (
 	"fmt"
-	"log"
 	"os"
 	"os/exec"
 	"strings"
@@ -13,23 +12,46 @@ import (
 )
 
 var (
-	titleStyle   = lipgloss.NewStyle().Foreground(lipgloss.Color("#7D56F4")).Bold(true)
-	cursorStyle  = lipgloss.NewStyle().Foreground(lipgloss.Color("#ffffff")).Background(lipgloss.Color("#5A56E0")).Bold(true)
-	normalStyle  = lipgloss.NewStyle().Foreground(lipgloss.Color("#888888"))
-	playingStyle = lipgloss.NewStyle().Foreground(lipgloss.Color("#00ff00")).Bold(true)
-	pausedStyle  = lipgloss.NewStyle().Foreground(lipgloss.Color("#ffcc00")).Italic(true)
-	footerStyle  = lipgloss.NewStyle().Foreground(lipgloss.Color("#444444")).Italic(true)
+	titleStyle = lipgloss.NewStyle().
+			Foreground(lipgloss.Color("#A78BFA")). // Purple-400
+			Bold(true).
+			MarginBottom(1)
+
+	cursorStyle = lipgloss.NewStyle().
+			Foreground(lipgloss.Color("#1E1B4B")). // Dark purple
+			Background(lipgloss.Color("#C4B5FD")). // Purple-200
+			Bold(true)
+
+	normalStyle = lipgloss.NewStyle().
+			Foreground(lipgloss.Color("#94A3B8")) // Slate-400
+
+	playingStyle = lipgloss.NewStyle().
+			Foreground(lipgloss.Color("#4ADE80")). // Green-400
+			Bold(true)
+
+	pausedStyle = lipgloss.NewStyle().
+			Foreground(lipgloss.Color("#FACC15")). // Yellow-400
+			Italic(true)
+
+	footerStyle = lipgloss.NewStyle().
+			Foreground(lipgloss.Color("#64748B")). // Slate-500
+			Italic(true).
+			MarginTop(1)
 )
 
 type model struct {
-	files      []string
-	err        error
-	cursor     int
-	choices    []string
-	selected   map[int]struct{}
-	processPid *os.Process
-	isPaused   bool
+	files          []string
+	err            error
+	cursor         int
+	choices        []string
+	selected       map[int]struct{}
+	processPid     *os.Process
+	isPaused       bool
+	currentPlaying int // Track currently playing song index
+	// width          int
+	// height         int
 }
+
 type filesMsg []string
 type errMsg struct{ error }
 
@@ -83,31 +105,30 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				err := m.processPid.Kill()
 				if err != nil {
 					// log.Println("Failed to kill process:", err)
-				} else {
-					// log.Println("Killed process:", m.processPid.Pid)
 				}
 				m.processPid.Release()
 				m.processPid = nil
+				m.currentPlaying = -1
 			}
 
 			file := m.files[m.cursor]
 			cmd := exec.Command("pw-play", "/home/arcadian/Music/"+file)
 
 			if err := cmd.Start(); err != nil {
-				log.Printf("Error playing file: %v", err)
+				// log.Printf("Error playing file: %v", err)
 			} else {
 				m.processPid = cmd.Process
 				m.isPaused = false
+				m.currentPlaying = m.cursor
 
 				go func() {
 					err := cmd.Wait()
 					if err != nil {
-						log.Println("Process exited with error:", err)
-					} else {
-						log.Println("Process finished:", cmd.Process.Pid)
+						// log.Println("Process exited with error:", err)
 					}
+					m.processPid = nil
+					m.currentPlaying = -1
 				}()
-				// log.Println("Started process:", m.processPid.Pid)
 			}
 
 		case " ":
@@ -115,24 +136,17 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				var err error
 				if m.isPaused {
 					err = m.processPid.Signal(syscall.SIGCONT)
-					if err != nil {
-					} else {
-						// log.Println("Resumed process:", m.processPid.Pid)
+					if err == nil {
 						m.isPaused = false
 					}
 				} else {
 					err = m.processPid.Signal(syscall.SIGSTOP)
-					if err != nil {
-						// log.Println("Failed to pause process:", err)
-					} else {
-						// log.Println("Paused process:", m.processPid.Pid)
+					if err == nil {
 						m.isPaused = true
 					}
 				}
 			}
-
 		}
-
 	}
 
 	return m, nil
@@ -142,8 +156,7 @@ func (m model) View() string {
 	var b strings.Builder
 
 	// Title
-	fmt.Fprintln(&b, titleStyle.Render("🎵 Music Player"))
-	fmt.Fprintln(&b, "")
+	fmt.Fprintf(&b, "%s\n", titleStyle.Render("🎵 Music Player"))
 
 	if m.err != nil {
 		return fmt.Sprintf("Error: %v\n", m.err)
@@ -157,14 +170,26 @@ func (m model) View() string {
 	for i, file := range m.files {
 		var line string
 
-		switch {
-		case i == m.cursor && m.isPaused:
-			line = pausedStyle.Render("⏸ " + file)
-		case i == m.cursor && m.processPid != nil:
-			line = playingStyle.Render("▶ " + file)
-		case i == m.cursor:
-			line = cursorStyle.Render("> " + file)
-		default:
+		// Apply cursor style first (background)
+		if i == m.cursor {
+			line = cursorStyle.Render("  " + file + "|")
+
+			// Then apply playing/paused style if needed (text color)
+			if i == m.currentPlaying {
+				if m.isPaused {
+					line = pausedStyle.Render(line)
+				} else {
+					line = playingStyle.Render(line)
+				}
+			}
+		} else if i == m.currentPlaying {
+			// Currently playing song but not selected
+			if m.isPaused {
+				line = pausedStyle.Render("  " + file)
+			} else {
+				line = playingStyle.Render("  " + file)
+			}
+		} else {
 			line = normalStyle.Render("  " + file)
 		}
 
@@ -172,14 +197,15 @@ func (m model) View() string {
 	}
 
 	// Footer
-	fmt.Fprintln(&b, "")
-	fmt.Fprintln(&b, footerStyle.Render("↑/↓ to move · Enter to play · Space to pause/resume · q to quit"))
+	// fmt.Fprintf(&b, "\n%s", footerStyle.Render(
+	// 	"↑/↓ to move • Enter to play • Space to pause/resume • q to quit",
+	// ))
 
 	return b.String()
 }
 
 func main() {
-	p := tea.NewProgram(model{})
+	p := tea.NewProgram(model{}, tea.WithAltScreen())
 
 	if err := p.Start(); err != nil {
 		fmt.Println("Error:", err)
