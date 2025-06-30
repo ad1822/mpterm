@@ -18,14 +18,14 @@ var (
 			MarginBottom(1)
 
 	cursorStyle = lipgloss.NewStyle().
-			Foreground(lipgloss.Color("#1E1B4B")). // Dark purple
-			Background(lipgloss.Color("#C4B5FD")). // Purple-200
-			Bold(true)
+			Foreground(lipgloss.Color("#f5e0dc")). // Dark purple
+		// Background(lipgloss.Color("#C4B5FD")). // Purple-200
+		Bold(true)
 
 	queueCursorStyle = lipgloss.NewStyle().
-				Foreground(lipgloss.Color("#1E1B4B")). // Dark purple
-				Background(lipgloss.Color("#A5B4FC")). // Purple-300
-				Bold(true)
+				Foreground(lipgloss.Color("#f2cdcd")). // Dark purple
+		// Background(lipgloss.Color("#A5B4FC")). // Purple-300
+		Bold(true)
 
 	normalStyle = lipgloss.NewStyle().
 			Foreground(lipgloss.Color("#94A3B8")) // Slate-400
@@ -96,6 +96,7 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case tea.WindowSizeMsg:
 		m.width = msg.Width
 		m.height = msg.Height
+		return m, nil
 	case filesMsg:
 		m.files = msg
 		m.choices = msg
@@ -253,20 +254,22 @@ func renderQueue(m model) string {
 	var b strings.Builder
 	for i, entry := range m.queue {
 		var line string
+		// prefix := "   " // default spacing
 
 		// Apply cursor style if this is the selected item in the queue
 		if i == m.queueCursor && m.activePanel == 1 {
-			line = queueCursorStyle.Render(fmt.Sprintf("%d. %s", i+1, entry))
+			line = queueCursorStyle.Render("  " + entry)
+			// prefix = "  " // one less space for cursor
 		} else {
-			line = normalStyle.Render(fmt.Sprintf("%d. %s", i+1, entry))
+			line = normalStyle.Render("  " + entry)
 		}
 
 		// Apply playing indicator if this is the currently playing track
 		if i == m.currentPlaying {
 			if m.isPaused {
-				line = pausedStyle.Render("⏸ " + line)
+				line = pausedStyle.Render("⏸ " + entry)
 			} else {
-				line = playingStyle.Render("▶ " + line)
+				line = playingStyle.Render("▶ " + entry)
 			}
 		}
 
@@ -283,20 +286,22 @@ func renderSongList(m model) string {
 	var b strings.Builder
 	for i, file := range m.files {
 		var line string
+		// prefix := "   " // default spacing
 
 		// Apply cursor style
 		if i == m.cursor && m.activePanel == 0 {
 			line = cursorStyle.Render("  " + file)
+			// prefix := "  " // one less space for cursor
 		} else {
 			line = normalStyle.Render("  " + file)
 		}
 
-		// Check if this is the currently playing song (even if from queue)
+		// Check if this is the currently playing song
 		if file == m.currentSong {
 			if m.isPaused {
-				line = pausedStyle.Render("⏸ " + line)
+				line = pausedStyle.Render("⏸ " + file)
 			} else {
-				line = playingStyle.Render("▶ " + line)
+				line = playingStyle.Render("▶ " + file)
 			}
 		}
 
@@ -309,7 +314,7 @@ func (m model) View() string {
 	playerHeight := 10
 	mainHeight := m.height - playerHeight
 	mainWidth := m.width
-	leftWidth := mainWidth / 2
+	leftWidth := (mainWidth / 2) - playerHeight
 
 	// Determine border colors based on active panel
 	leftBorderColor := "12"  // Default
