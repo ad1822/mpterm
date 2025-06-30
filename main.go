@@ -22,6 +22,11 @@ var (
 			Background(lipgloss.Color("#C4B5FD")). // Purple-200
 			Bold(true)
 
+	queueCursorStyle = lipgloss.NewStyle().
+				Foreground(lipgloss.Color("#1E1B4B")). // Dark purple
+				Background(lipgloss.Color("#A5B4FC")). // Purple-300
+				Bold(true)
+
 	normalStyle = lipgloss.NewStyle().
 			Foreground(lipgloss.Color("#94A3B8")) // Slate-400
 
@@ -31,12 +36,19 @@ var (
 
 	pausedStyle = lipgloss.NewStyle().
 			Foreground(lipgloss.Color("#FACC15")). // Yellow-400
-			Italic(true)
+			Bold(true)
 
 	footerStyle = lipgloss.NewStyle().
 			Foreground(lipgloss.Color("#64748B")). // Slate-500
 			Italic(true).
 			MarginTop(1)
+
+	border = lipgloss.NewStyle().
+		BorderStyle(lipgloss.RoundedBorder()).
+		BorderForeground(lipgloss.Color("228")).
+		BorderBackground(lipgloss.Color("63")).
+		BorderTop(true).
+		BorderLeft(true)
 )
 
 type model struct {
@@ -48,8 +60,12 @@ type model struct {
 	processPid     *os.Process
 	isPaused       bool
 	currentPlaying int // Track currently playing song index
-	// width          int
-	// height         int
+	width          int
+	height         int
+	currentSong    string
+	queue          []string
+	queueCursor    int
+	activePanel    int // 0 for main list, 1 for queue
 }
 
 type filesMsg []string
@@ -77,7 +93,9 @@ func readFilesCmd(path string) tea.Cmd {
 
 func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
-
+	case tea.WindowSizeMsg:
+		m.width = msg.Width
+		m.height = msg.Height
 	case filesMsg:
 		m.files = msg
 		m.choices = msg
@@ -91,46 +109,65 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case tea.KeyMsg:
 		switch msg.String() {
 		case "ctrl+c", "q":
+			if m.processPid != nil {
+				_ = m.processPid.Kill()
+				_ = m.processPid.Release()
+				m.processPid = nil
+			}
 			return m, tea.Quit
+		case "tab":
+			// Switch between panels
+			m.activePanel = (m.activePanel + 1) % 2
 		case "up", "k":
-			if m.cursor > 0 {
+			if m.activePanel == 0 && m.cursor > 0 {
 				m.cursor--
+			} else if m.activePanel == 1 && m.queueCursor > 0 {
+				m.queueCursor--
 			}
 		case "down", "j":
-			if m.cursor < len(m.choices)-1 {
+			if m.activePanel == 0 && m.cursor < len(m.choices)-1 {
 				m.cursor++
+			} else if m.activePanel == 1 && m.queueCursor < len(m.queue)-1 {
+				m.queueCursor++
+			}
+		case "a":
+			// Add to queue
+			if len(m.files) > 0 {
+				m.queue = append(m.queue, m.files[m.cursor])
+			}
+		case "d":
+			// Remove from queue
+			if len(m.queue) > 0 && m.queueCursor >= 0 && m.queueCursor < len(m.queue) {
+				// If we're removing the currently playing song, stop it
+				if m.currentPlaying >= 0 && m.queueCursor == m.currentPlaying {
+					if m.processPid != nil {
+						_ = m.processPid.Kill()
+						_ = m.processPid.Release()
+						m.processPid = nil
+					}
+					m.currentPlaying = -1
+					m.currentSong = ""
+				}
+				m.queue = append(m.queue[:m.queueCursor], m.queue[m.queueCursor+1:]...)
+				if m.queueCursor >= len(m.queue) && len(m.queue) > 0 {
+					m.queueCursor = len(m.queue) - 1
+				}
+				if len(m.queue) == 0 {
+					m.queueCursor = 0
+				}
+				// Adjust currentPlaying if it was after the removed item
+				if m.currentPlaying > m.queueCursor {
+					m.currentPlaying--
+				}
 			}
 		case "enter":
-			if m.processPid != nil {
-				err := m.processPid.Kill()
-				if err != nil {
-					// log.Println("Failed to kill process:", err)
-				}
-				m.processPid.Release()
-				m.processPid = nil
-				m.currentPlaying = -1
+			if m.activePanel == 0 {
+				// Play from main list
+				m.playSong(m.files[m.cursor], -1)
+			} else if m.activePanel == 1 && len(m.queue) > 0 {
+				// Play from queue
+				m.playSong(m.queue[m.queueCursor], m.queueCursor)
 			}
-
-			file := m.files[m.cursor]
-			cmd := exec.Command("pw-play", "/home/arcadian/Music/"+file)
-
-			if err := cmd.Start(); err != nil {
-				// log.Printf("Error playing file: %v", err)
-			} else {
-				m.processPid = cmd.Process
-				m.isPaused = false
-				m.currentPlaying = m.cursor
-
-				go func() {
-					err := cmd.Wait()
-					if err != nil {
-						// log.Println("Process exited with error:", err)
-					}
-					m.processPid = nil
-					m.currentPlaying = -1
-				}()
-			}
-
 		case " ":
 			if m.processPid != nil {
 				var err error
@@ -146,66 +183,193 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 					}
 				}
 			}
+		case "l":
+			// Play next in queue
+			if len(m.queue) > 0 {
+				nextIndex := m.currentPlaying + 1
+				if nextIndex < len(m.queue) {
+					m.playSong(m.queue[nextIndex], nextIndex)
+					m.queueCursor = nextIndex
+				}
+			}
+		case "h":
+			// Play previous in queue
+			if len(m.queue) > 0 {
+				prevIndex := m.currentPlaying - 1
+				if prevIndex >= 0 {
+					m.playSong(m.queue[prevIndex], prevIndex)
+					m.queueCursor = prevIndex
+				}
+			}
+		case "s":
+			// Stop playback
+			if m.processPid != nil {
+				_ = m.processPid.Kill()
+				_ = m.processPid.Release()
+				m.processPid = nil
+				m.currentSong = ""
+				m.currentPlaying = -1
+				m.isPaused = false
+			}
 		}
 	}
 
 	return m, nil
 }
 
-func (m model) View() string {
+func (m *model) playSong(filename string, queueIndex int) {
+	if m.processPid != nil {
+		_ = m.processPid.Kill()
+		_ = m.processPid.Release()
+		m.processPid = nil
+	}
+
+	cmd := exec.Command("pw-play", "/home/arcadian/Music/"+filename)
+
+	if err := cmd.Start(); err != nil {
+		// Error handling would go here
+	} else {
+		m.currentSong = filename
+		m.processPid = cmd.Process
+		m.isPaused = false
+		m.currentPlaying = queueIndex
+
+		go func() {
+			err := cmd.Wait()
+			if err != nil {
+				// Error handling would go here
+			}
+			m.processPid = nil
+			m.currentPlaying = -1
+		}()
+	}
+}
+
+func renderQueue(m model) string {
+	if len(m.queue) == 0 {
+		return "Queue is empty (press 'a' to add)"
+	}
+
 	var b strings.Builder
+	for i, entry := range m.queue {
+		var line string
 
-	// Title
-	fmt.Fprintf(&b, "%s\n", titleStyle.Render("🎵 Music Player"))
+		// Apply cursor style if this is the selected item in the queue
+		if i == m.queueCursor && m.activePanel == 1 {
+			line = queueCursorStyle.Render(fmt.Sprintf("%d. %s", i+1, entry))
+		} else {
+			line = normalStyle.Render(fmt.Sprintf("%d. %s", i+1, entry))
+		}
 
-	if m.err != nil {
-		return fmt.Sprintf("Error: %v\n", m.err)
+		// Apply playing indicator if this is the currently playing track
+		if i == m.currentPlaying {
+			if m.isPaused {
+				line = pausedStyle.Render("⏸ " + line)
+			} else {
+				line = playingStyle.Render("▶ " + line)
+			}
+		}
+
+		b.WriteString(line + "\n")
 	}
+	return b.String()
+}
 
+func renderSongList(m model) string {
 	if len(m.files) == 0 {
-		return "Loading songs..."
+		return "No songs found"
 	}
 
-	// File List
+	var b strings.Builder
 	for i, file := range m.files {
 		var line string
 
-		// Apply cursor style first (background)
-		if i == m.cursor {
-			line = cursorStyle.Render("  " + file + "|")
-
-			// Then apply playing/paused style if needed (text color)
-			if i == m.currentPlaying {
-				if m.isPaused {
-					line = pausedStyle.Render(line)
-				} else {
-					line = playingStyle.Render(line)
-				}
-			}
-		} else if i == m.currentPlaying {
-			// Currently playing song but not selected
-			if m.isPaused {
-				line = pausedStyle.Render("  " + file)
-			} else {
-				line = playingStyle.Render("  " + file)
-			}
+		// Apply cursor style
+		if i == m.cursor && m.activePanel == 0 {
+			line = cursorStyle.Render("  " + file)
 		} else {
 			line = normalStyle.Render("  " + file)
 		}
 
-		fmt.Fprintln(&b, line)
+		// Check if this is the currently playing song (even if from queue)
+		if file == m.currentSong {
+			if m.isPaused {
+				line = pausedStyle.Render("⏸ " + line)
+			} else {
+				line = playingStyle.Render("▶ " + line)
+			}
+		}
+
+		b.WriteString(line + "\n")
 	}
-
-	// Footer
-	// fmt.Fprintf(&b, "\n%s", footerStyle.Render(
-	// 	"↑/↓ to move • Enter to play • Space to pause/resume • q to quit",
-	// ))
-
 	return b.String()
 }
 
+func (m model) View() string {
+	playerHeight := 10
+	mainHeight := m.height - playerHeight
+	mainWidth := m.width
+	leftWidth := mainWidth / 2
+
+	// Determine border colors based on active panel
+	leftBorderColor := "12"  // Default
+	rightBorderColor := "12" // Default
+	if m.activePanel == 0 {
+		leftBorderColor = "201" // Highlight left panel
+	} else {
+		rightBorderColor = "201" // Highlight right panel
+	}
+
+	leftPanel := lipgloss.NewStyle().
+		Border(lipgloss.RoundedBorder()).
+		BorderForeground(lipgloss.Color(leftBorderColor)).
+		Padding(1, 0, 0, 2).
+		Width(leftWidth).
+		Height(mainHeight).
+		Render(renderSongList(m))
+
+	rightPanel := lipgloss.NewStyle().
+		Border(lipgloss.RoundedBorder()).
+		BorderForeground(lipgloss.Color(rightBorderColor)).
+		Padding(1, 0, 0, 2).
+		Width(leftWidth).
+		Height(mainHeight).
+		Render(renderQueue(m))
+
+	// Status bar
+	status := ""
+	if m.currentSong != "" {
+		status = fmt.Sprintf("Now %s: %s", map[bool]string{true: "⏸ Paused", false: "▶ Playing"}[m.isPaused], m.currentSong)
+	} else {
+		status = "Stopped"
+	}
+	statusBar := lipgloss.NewStyle().
+		Width(mainWidth).
+		Foreground(lipgloss.Color("#FFFFFF")).
+		Background(lipgloss.Color("#1E1B4B")).
+		Align(lipgloss.Center).
+		Render(status)
+
+	mainView := lipgloss.JoinHorizontal(
+		lipgloss.Left,
+		leftPanel,
+		rightPanel,
+	)
+
+	// Combine everything
+	return lipgloss.JoinVertical(
+		lipgloss.Left,
+		mainView,
+		statusBar,
+	)
+}
+
 func main() {
-	p := tea.NewProgram(model{}, tea.WithAltScreen())
+	p := tea.NewProgram(model{
+		currentPlaying: -1,
+		queueCursor:    0,
+		activePanel:    0,
+	}, tea.WithAltScreen())
 
 	if err := p.Start(); err != nil {
 		fmt.Println("Error:", err)
