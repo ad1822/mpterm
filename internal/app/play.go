@@ -13,7 +13,14 @@ func (m *Model) PlaySong(filename string, queueIndex int) {
 		m.ProcessPid = nil
 	}
 
-	cmd := exec.Command("pw-play", "/home/arcadian/Music/"+filename)
+
+	cmd := exec("xdg-user-dir","MUSIC") // use xdg-user-dir for getting music dir
+	output, err := cmd.Output()
+	if err != nil{
+		return "",err
+	}
+	musicDir := strings.TrimSpace(string(output)) + "/"
+	cmd := exec.Command("pw-play", musicDir+filename)
 
 	if err := cmd.Start(); err != nil {
 		return
