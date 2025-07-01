@@ -14,12 +14,12 @@ func (m *Model) PlaySong(filename string, queueIndex int) {
 	}
 
 
-	cmd := exec("xdg-user-dir","MUSIC") // use xdg-user-dir for getting music dir
-	output, err := cmd.Output()
+	command := exec("xdg-user-dir","MUSIC") // use xdg-user-dir for getting music dir
+	commandOutput, err := command.Output()
 	if err != nil{
 		return "",err
 	}
-	musicDir := strings.TrimSpace(string(output)) + "/"
+	musicDir := strings.TrimSpace(string(commandOutput)) + "/"
 	cmd := exec.Command("pw-play", musicDir+filename)
 
 	if err := cmd.Start(); err != nil {
