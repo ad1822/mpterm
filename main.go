@@ -66,8 +66,25 @@ type model struct {
 type filesMsg []string
 type errMsg struct{ error }
 
+func getMusicDir() (string,error) {
+	cmd := exec.Command("xdg-user-dir","MUSIC") // use xdg-user-dir for getting music dir
+	output, err := cmd.Output()
+	if err != nil{
+		return "",err
+	}
+	musicDir := strings.TrimSpace(string(output)) + "/"
+	return musicDir,nil
+}
+
+
+
 func (m model) Init() tea.Cmd {
-	return readFilesCmd("/home/arcadian/Music")
+	musicDir,err := getMusicDir()
+	if err != nil{
+		fmt.Printf("%s\n",err)
+		return readFilesCmd("/home/arcadian/Music")
+	}
+	return readFilesCmd(musicDir)
 }
 
 func readFilesCmd(path string) tea.Cmd {
@@ -219,8 +236,12 @@ func (m *model) playSong(filename string, queueIndex int) {
 		_ = m.processPid.Release()
 		m.processPid = nil
 	}
-
-	cmd := exec.Command("pw-play", "/home/arcadian/Music/"+filename)
+	musicDir,err := getMusicDir()
+	if err != nil{
+		fmt.Printf("%s\n",err)
+		musicDir = "/home/arcadian/Music/"
+	}
+	cmd := exec.Command("pw-play", musicDir+filename)
 
 	if err := cmd.Start(); err != nil {
 		// Error handling would go here
