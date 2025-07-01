@@ -13,35 +13,30 @@ import (
 
 var (
 	titleStyle = lipgloss.NewStyle().
-			Foreground(lipgloss.Color("#A78BFA")). // Purple-400
+			Foreground(lipgloss.Color("#A78BFA")).
 			Bold(true).
 			MarginBottom(1)
 
 	cursorStyle = lipgloss.NewStyle().
-			Foreground(lipgloss.Color("#f5e0dc")). // Dark purple
-		// Background(lipgloss.Color("#C4B5FD")). // Purple-200
-		Bold(true)
+			Foreground(lipgloss.Color("#f5e0dc")).
+			Bold(true)
 
 	queueCursorStyle = lipgloss.NewStyle().
-				Foreground(lipgloss.Color("#f2cdcd")). // Dark purple
-		// Background(lipgloss.Color("#A5B4FC")). // Purple-300
-		Bold(true)
+				Foreground(lipgloss.Color("#f2cdcd")).
+				Bold(true)
 
 	normalStyle = lipgloss.NewStyle().
-			Foreground(lipgloss.Color("#94A3B8")) // Slate-400
+			Foreground(lipgloss.Color("#94A3B8"))
 
 	playingStyle = lipgloss.NewStyle().
-			Foreground(lipgloss.Color("#4ADE80")). // Green-400
+			Foreground(lipgloss.Color("#4ADE80")).
 			Bold(true)
 
 	pausedStyle = lipgloss.NewStyle().
-			Foreground(lipgloss.Color("#FACC15")). // Yellow-400
+			Foreground(lipgloss.Color("#FACC15")).
 			Bold(true)
 
-	footerStyle = lipgloss.NewStyle().
-			Foreground(lipgloss.Color("#64748B")). // Slate-500
-			Italic(true).
-			MarginTop(1)
+	footerStyle = lipgloss.NewStyle()
 
 	border = lipgloss.NewStyle().
 		BorderStyle(lipgloss.RoundedBorder()).
@@ -311,62 +306,93 @@ func renderSongList(m model) string {
 }
 
 func (m model) View() string {
-	playerHeight := 10
-	mainHeight := m.height - playerHeight
-	mainWidth := m.width
-	leftWidth := (mainWidth / 2) - playerHeight
+	mainHeight := m.height - 2 // Adjust for title + status bar
+	mainWidth := m.width - 4
+	leftWidth := (mainWidth / 2)
 
-	// Determine border colors based on active panel
-	leftBorderColor := "12"  // Default
-	rightBorderColor := "12" // Default
+	// Panel border colors (active panel highlight)
+	leftBorderColor, rightBorderColor := "0", "0"
 	if m.activePanel == 0 {
-		leftBorderColor = "201" // Highlight left panel
+		leftBorderColor = "#cba6f7"
 	} else {
-		rightBorderColor = "201" // Highlight right panel
+		rightBorderColor = "#cba6f7"
 	}
 
+	// Title (centered at the top)
+	title := lipgloss.NewStyle().
+		Bold(true).
+		Foreground(lipgloss.Color("#cba6f7")). // Purple accent
+		Align(lipgloss.Center).
+		Width(mainWidth).
+		Render("🎵 Music Player 🎵")
+
+	// Left panel (with explicit borders)
 	leftPanel := lipgloss.NewStyle().
 		Border(lipgloss.RoundedBorder()).
 		BorderForeground(lipgloss.Color(leftBorderColor)).
-		Padding(1, 0, 0, 2).
+		Padding(1, 0, 0, 2). // Reduced top padding
 		Width(leftWidth).
-		Height(mainHeight).
+		Height(mainHeight - 1). // Adjust height for title
 		Render(renderSongList(m))
 
+	// Right panel
 	rightPanel := lipgloss.NewStyle().
 		Border(lipgloss.RoundedBorder()).
 		BorderForeground(lipgloss.Color(rightBorderColor)).
 		Padding(1, 0, 0, 2).
 		Width(leftWidth).
-		Height(mainHeight).
+		Height(mainHeight - 1).
 		Render(renderQueue(m))
 
-	// Status bar
-	status := ""
-	if m.currentSong != "" {
-		status = fmt.Sprintf("Now %s: %s", map[bool]string{true: "⏸ Paused", false: "▶ Playing"}[m.isPaused], m.currentSong)
-	} else {
-		status = "Stopped"
-	}
+	// Status bar (help text)
 	statusBar := lipgloss.NewStyle().
 		Width(mainWidth).
 		Foreground(lipgloss.Color("#FFFFFF")).
-		Background(lipgloss.Color("#1E1B4B")).
 		Align(lipgloss.Center).
-		Render(status)
+		Render(helpView())
 
-	mainView := lipgloss.JoinHorizontal(
-		lipgloss.Left,
-		leftPanel,
-		rightPanel,
-	)
+	// Combine panels horizontally
+	panelView := lipgloss.JoinHorizontal(lipgloss.Left, leftPanel, rightPanel)
 
-	// Combine everything
+	// Final layout: Title → Panels → Status bar
 	return lipgloss.JoinVertical(
 		lipgloss.Left,
-		mainView,
-		statusBar,
+		title,     // Title at the top
+		panelView, // Panels below title
+		statusBar, // Status bar at bottom
 	)
+}
+
+func helpView() string {
+	helpKeys := []string{
+		"j/k: Navigate",
+		"Tab: Switch panels",
+		"Enter: Play",
+		"Space: Pause",
+		"a: Add to queue",
+		"d: Remove from queue",
+		"h/l: Prev/Next in queue",
+		"s: Stop",
+		"q/ctrl+c: Quit",
+	}
+
+	var helpText []string
+	for _, entry := range helpKeys {
+		// Split keybinding and description
+		parts := strings.SplitN(entry, ":", 2)
+		if len(parts) == 2 {
+			key := parts[0]  // e.g., "j/k"
+			desc := parts[1] // e.g., " Navigate"
+
+			// Apply bold to the key, normal style to description
+			boldKey := lipgloss.NewStyle().Bold(true).Render(key)
+			helpText = append(helpText, footerStyle.Render(boldKey+":"+lipgloss.NewStyle().Bold(true).Foreground(lipgloss.Color("#94A3B8")).Render(desc)))
+		} else {
+			// Fallback if no ":" is found
+			helpText = append(helpText, footerStyle.Render(entry))
+		}
+	}
+	return strings.Join(helpText, " | ")
 }
 
 func main() {
