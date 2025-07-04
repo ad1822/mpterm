@@ -1,8 +1,31 @@
 package app
 
 import (
+	"net"
+	"encoding/json"
 	tea "github.com/charmbracelet/bubbletea"
 )
+
+func forwardSong(seconds int) error {
+	conn, err := net.Dial("unix", "/tmp/mpvsock")
+	if err != nil {
+		return err
+	}
+	defer conn.Close()
+	msg := map[string]interface{}{
+
+		"command": []interface{}{"seek", seconds, "relative"},
+
+	}
+
+	data,err := json.Marshal(msg)
+	if err != nil{
+		return err
+	}
+	_, err = conn.Write(append(data, '\n'))
+	return err
+}
+
 
 // Update
 func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
@@ -92,7 +115,10 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 					m.QueueCursor = prev
 				}
 			}
-
+		case "right":
+			_ = forwardSong(5)
+		case "left":
+			_ = forwardSong(-5)
 		// Stop playing Song
 		case "s":
 			m.stopPlayback()

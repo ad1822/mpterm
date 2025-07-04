@@ -3,7 +3,28 @@ package app
 import (
 	"os/exec"
 	"syscall"
+	"encoding/json"
+	"net"
 )
+
+
+func ForwardSong(seconds int) error{
+	conn, err := net.Dial("unix", "/tmp/mpvsock")
+	if err != nil {
+		return err
+	}
+	defer conn.Close()
+	msg := map[string]interface{}{
+		"command": []interface{}{"seek", seconds, "relative"},
+	}
+
+	data,err := json.Marshal(msg)
+	if err != nil{
+		return err
+	}
+	_, err = conn.Write(append(data, '\n'))
+	return err
+}
 
 // For Playing Song when selected
 func (m *Model) PlaySong(filename string, queueIndex int) {
@@ -13,7 +34,7 @@ func (m *Model) PlaySong(filename string, queueIndex int) {
 		m.ProcessPid = nil
 	}
 
-	cmd := exec.Command("pw-play", "/home/arcadian/Music/"+filename)
+	cmd := exec.Command("mpv","--input-ipc-server=/tmp/mpvsock", "/home/arcadian/Music/"+filename)
 
 	if err := cmd.Start(); err != nil {
 		return

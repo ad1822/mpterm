@@ -28,6 +28,7 @@ func (m *Model) View() string {
 
 	// Left panel (with explicit borders)
 	leftPanel := lipgloss.NewStyle().
+		Background(lipgloss.Color("#190044")).
 		Border(lipgloss.RoundedBorder()).
 		BorderForeground(lipgloss.Color(leftBorderColor)).
 		Padding(1, 0, 0, 2). // Reduced top padding
@@ -37,6 +38,7 @@ func (m *Model) View() string {
 
 	// Right panel
 	rightPanel := lipgloss.NewStyle().
+		Background(lipgloss.Color("#0d0033")).
 		Border(lipgloss.RoundedBorder()).
 		BorderForeground(lipgloss.Color(rightBorderColor)).
 		Padding(1, 0, 0, 2).
