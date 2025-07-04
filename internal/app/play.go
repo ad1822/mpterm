@@ -5,6 +5,8 @@ import (
 	"syscall"
 )
 
+
+
 // For Playing Song when selected
 func (m *Model) PlaySong(filename string, queueIndex int) {
 	if m.ProcessPid != nil {
@@ -13,7 +15,7 @@ func (m *Model) PlaySong(filename string, queueIndex int) {
 		m.ProcessPid = nil
 	}
 
-	cmd := exec.Command("pw-play", "/home/arcadian/Music/"+filename)
+	cmd := exec.Command("mpv","--input-ipc-server=/tmp/mpvsock", "/home/arcadian/Music/"+filename)
 
 	if err := cmd.Start(); err != nil {
 		return
