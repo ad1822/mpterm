@@ -6,8 +6,8 @@ import (
 
 // View
 func (m *Model) View() string {
-	mainHeight := m.Height - 2
-	mainWidth := m.Width - 2
+	mainHeight := m.Height - (m.Height / 10)
+	mainWidth := m.Width - (m.Height / 10)
 	leftWidth := (mainWidth / 2)
 
 	// Panel border colors (active panel highlight)
@@ -18,30 +18,20 @@ func (m *Model) View() string {
 		rightBorderColor = "#cba6f7"
 	}
 
-	// Title (centered at the top)
-	title := lipgloss.NewStyle().
-		Bold(true).
-		Foreground(lipgloss.Color("#cba6f7")). // Purple accent
-		Align(lipgloss.Center).
-		Width(mainWidth).
-		Render("🎵 Music Player 🎵")
-
 	// Left panel (with explicit borders)
 	leftPanel := lipgloss.NewStyle().
-		Background(lipgloss.Color("#190044")).
 		Border(lipgloss.RoundedBorder()).
 		BorderForeground(lipgloss.Color(leftBorderColor)).
-		Padding(1, 0, 0, 2). // Reduced top padding
+		Padding(0, 0, 0, 1). // Reduced top padding
 		Width(leftWidth).
 		Height(mainHeight - 1). // Adjust height for title
 		Render(RenderSongList(m))
 
 	// Right panel
 	rightPanel := lipgloss.NewStyle().
-		Background(lipgloss.Color("#0d0033")).
 		Border(lipgloss.RoundedBorder()).
 		BorderForeground(lipgloss.Color(rightBorderColor)).
-		Padding(1, 0, 0, 2).
+		Padding(0, 0, 0, 1).
 		Width(leftWidth).
 		Height(mainHeight - 1).
 		Render(RenderQueue(m))
@@ -59,7 +49,7 @@ func (m *Model) View() string {
 	// Final layout: Title → Panels → Status bar
 	return lipgloss.JoinVertical(
 		lipgloss.Left,
-		title,     // Title at the top
+		// title,     // Title at the top
 		panelView, // Panels below title
 		statusBar, // Status bar at bottom
 	)

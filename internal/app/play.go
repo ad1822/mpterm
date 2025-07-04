@@ -5,8 +5,6 @@ import (
 	"syscall"
 )
 
-
-
 // For Playing Song when selected
 func (m *Model) PlaySong(filename string, queueIndex int) {
 	if m.ProcessPid != nil {
@@ -15,25 +13,31 @@ func (m *Model) PlaySong(filename string, queueIndex int) {
 		m.ProcessPid = nil
 	}
 
-	cmd := exec.Command("mpv","--input-ipc-server=/tmp/mpvsock", "/home/arcadian/Music/"+filename)
-
+	cmd := exec.Command("mpv", "--input-ipc-server=/tmp/mpvsock", "/home/arcadian/Music/"+filename)
 	if err := cmd.Start(); err != nil {
 		return
-	} else {
-		m.CurrentSong = filename
-		m.ProcessPid = cmd.Process
-		m.IsPaused = false
-		m.CurrentPlaying = queueIndex
-
-		go func() {
-			err := cmd.Wait()
-			if err != nil {
-				return
-			}
-			m.ProcessPid = nil
-			m.CurrentPlaying = -1
-		}()
 	}
+
+	m.CurrentSong = filename
+	m.ProcessPid = cmd.Process
+	m.IsPaused = false
+	m.CurrentPlaying = queueIndex
+
+	go func(currentIndex int) {
+		err := cmd.Wait()
+		if err != nil {
+			return
+		}
+
+		m.ProcessPid = nil
+		m.CurrentPlaying = -1
+
+		nextIndex := currentIndex + 1
+		if nextIndex < len(m.Files) {
+			m.Cursor = nextIndex
+			m.PlaySong(m.Files[nextIndex], nextIndex)
+		}
+	}(queueIndex)
 }
 
 // Stop playing song

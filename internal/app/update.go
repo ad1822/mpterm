@@ -1,8 +1,9 @@
 package app
 
 import (
-	"net"
 	"encoding/json"
+	"net"
+
 	tea "github.com/charmbracelet/bubbletea"
 )
 
@@ -15,25 +16,25 @@ func forwardSong(seconds int) error {
 	msg := map[string]interface{}{
 
 		"command": []interface{}{"seek", seconds, "relative"},
-
 	}
 
-	data,err := json.Marshal(msg)
-	if err != nil{
+	data, err := json.Marshal(msg)
+	if err != nil {
 		return err
 	}
 	_, err = conn.Write(append(data, '\n'))
 	return err
 }
 
-
 // Update
 func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
 
 	case tea.WindowSizeMsg:
-		m.Width = msg.Width
-		m.Height = msg.Height
+		if msg.Width != m.Width || msg.Height != m.Height {
+			m.Width = msg.Width
+			m.Height = msg.Height
+		}
 		return m, nil
 
 	case FilesMsg:
@@ -87,7 +88,7 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		// Start Playing song
 		case "enter":
 			if m.ActivePanel == 0 && len(m.Files) > 0 {
-				m.PlaySong(m.Files[m.Cursor], -1)
+				m.PlaySong(m.Files[m.Cursor], m.Cursor)
 			} else if m.ActivePanel == 1 && len(m.Queue) > 0 {
 				m.PlaySong(m.Queue[m.QueueCursor], m.QueueCursor)
 			}
@@ -115,10 +116,15 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 					m.QueueCursor = prev
 				}
 			}
+
+		// Right Arrow for skip next 5 seconds
 		case "right":
 			_ = forwardSong(5)
+
+		// Left Arrow for skip previous 5 seconds
 		case "left":
 			_ = forwardSong(-5)
+
 		// Stop playing Song
 		case "s":
 			m.stopPlayback()
