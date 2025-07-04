@@ -32,10 +32,14 @@ func (m *Model) PlaySong(filename string, queueIndex int) {
 		m.ProcessPid = nil
 		m.CurrentPlaying = -1
 
-		nextIndex := currentIndex + 1
-		if nextIndex < len(m.Files) {
+		if len(m.Queue) != 0 && m.QueueCursor+1 < len(m.Queue) {
+			m.QueueCursor = m.QueueCursor + 1
+			m.PlaySong(m.Queue[m.QueueCursor], m.QueueCursor)
+		} else {
+			nextIndex := currentIndex + 1
 			m.Cursor = nextIndex
 			m.PlaySong(m.Files[nextIndex], nextIndex)
+
 		}
 	}(queueIndex)
 }
