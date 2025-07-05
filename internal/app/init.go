@@ -1,13 +1,14 @@
 package app
 
 import (
+	"log"
+
 	tea "github.com/charmbracelet/bubbletea"
 )
 
 // Init Method for Initialization
 func (m *Model) Init() tea.Cmd {
-	// homeDir, _ := os.UserHomeDir()
-	// fullPath := filepath.Join(homeDir + "Music")
-	// log.Print(fullPath)
-	return ReadFilesCmd("/home/arcadian/Music")
+	path := GetFullPath()
+	log.Print(path)
+	return ReadFilesCmd(path)
 }

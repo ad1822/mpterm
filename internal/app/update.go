@@ -2,6 +2,7 @@ package app
 
 import (
 	"encoding/json"
+	"log"
 	"net"
 
 	tea "github.com/charmbracelet/bubbletea"
@@ -34,6 +35,7 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		if msg.Width != m.Width || msg.Height != m.Height {
 			m.Width = msg.Width
 			m.Height = msg.Height
+			log.Print(m.Width, " ", m.Height)
 		}
 		return m, nil
 
@@ -63,6 +65,9 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		case "up", "k":
 			if m.ActivePanel == 0 && m.Cursor > 0 {
 				m.Cursor--
+				if m.Cursor < m.ScrollOffset {
+					m.ScrollOffset--
+				}
 			} else if m.ActivePanel == 1 && m.QueueCursor > 0 {
 				m.QueueCursor--
 			}
@@ -71,6 +76,9 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		case "down", "j":
 			if m.ActivePanel == 0 && m.Cursor < len(m.Choices)-1 {
 				m.Cursor++
+				if m.Cursor >= m.ScrollOffset+m.Height-5 {
+					m.ScrollOffset++
+				}
 			} else if m.ActivePanel == 1 && m.QueueCursor < len(m.Queue)-1 {
 				m.QueueCursor++
 			}
@@ -117,7 +125,7 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				}
 			}
 
-		// Right Arrow for skip next 5 seconds
+		// Right Arrow for rewind next 5 seconds
 		case "right":
 			_ = forwardSong(5)
 

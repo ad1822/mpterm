@@ -26,13 +26,20 @@ func ReadFilesCmd(path string) tea.Cmd {
 }
 
 // Render Song from Path at initialization
-func RenderSongList(m *Model) string {
+func RenderSongList(m *Model, maxLines int) string {
 	if len(m.Files) == 0 {
 		return "No songs found"
 	}
 
+	start := m.ScrollOffset
+	end := start + maxLines
+	if end > len(m.Files) {
+		end = len(m.Files)
+	}
+
 	var b strings.Builder
-	for i, file := range m.Files {
+	for i := start; i < end; i++ {
+		file := m.Files[i]
 		var line string
 
 		if i == m.Cursor && m.ActivePanel == 0 {

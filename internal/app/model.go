@@ -18,6 +18,7 @@ type Model struct {
 	Queue          []string         // User-managed playback queue
 	QueueCursor    int              // Current cursor position within the queue panel
 	ActivePanel    int              // 0: song list panel active, 1: queue panel active
+	ScrollOffset   int
 }
 
 // FilesMsg is a message carrying a list of discovered files.

@@ -13,7 +13,8 @@ func (m *Model) PlaySong(filename string, queueIndex int) {
 		m.ProcessPid = nil
 	}
 
-	cmd := exec.Command("mpv", "--input-ipc-server=/tmp/mpvsock", "/home/arcadian/Music/"+filename)
+	// path := filepath.Join(GetFullPath())
+	cmd := exec.Command("mpv", "--input-ipc-server=/tmp/mpvsock", GetFullPath()+"/"+filename)
 	if err := cmd.Start(); err != nil {
 		return
 	}

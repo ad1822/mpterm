@@ -8,9 +8,11 @@ import (
 func (m *Model) View() string {
 	mainHeight := m.Height - (m.Height / 10)
 	mainWidth := m.Width - (m.Height / 10)
-	leftWidth := (mainWidth / 2)
+	// leftWidth := (mainWidth / 2)
+	rightWidth := mainWidth / 3
 
-	// Panel border colors (active panel highlight)
+	contentHeight := m.Height - 1
+	maxVisibleLines := contentHeight - 3
 	leftBorderColor, rightBorderColor := "0", "0"
 	if m.ActivePanel == 0 {
 		leftBorderColor = "#cba6f7"
@@ -18,39 +20,37 @@ func (m *Model) View() string {
 		rightBorderColor = "#cba6f7"
 	}
 
-	// Left panel (with explicit borders)
 	leftPanel := lipgloss.NewStyle().
-		Border(lipgloss.RoundedBorder()).
+		Border(lipgloss.NormalBorder()).
 		BorderForeground(lipgloss.Color(leftBorderColor)).
-		Padding(0, 0, 0, 1). // Reduced top padding
-		Width(leftWidth).
-		Height(mainHeight - 1). // Adjust height for title
-		Render(RenderSongList(m))
+		Padding(0, 0, 0, 1).
+		Width(mainWidth - rightWidth).
+		Height(mainHeight - 1).
+		Render(RenderSongList(m, maxVisibleLines))
 
-	// Right panel
 	rightPanel := lipgloss.NewStyle().
-		Border(lipgloss.RoundedBorder()).
+		Border(lipgloss.NormalBorder()).
 		BorderForeground(lipgloss.Color(rightBorderColor)).
 		Padding(0, 0, 0, 1).
-		Width(leftWidth).
+		Width(rightWidth).
 		Height(mainHeight - 1).
-		Render(RenderQueue(m))
+		Render(RenderQueue(m, maxVisibleLines))
 
-	// Status bar (help text)
-	statusBar := lipgloss.NewStyle().
-		Width(mainWidth).
-		Foreground(lipgloss.Color("#FFFFFF")).
-		Align(lipgloss.Center).
-		Render(HelpView())
+	// statusBar := lipgloss.NewStyle().
+	// 	Width(mainWidth).
+	// 	Foreground(lipgloss.Color("#FFFFFF")).
+	// 	Align(lipgloss.Center).
+	// 	Render(HelpView())
 
-	// Combine panels horizontally
 	panelView := lipgloss.JoinHorizontal(lipgloss.Left, leftPanel, rightPanel)
 
-	// Final layout: Title → Panels → Status bar
 	return lipgloss.JoinVertical(
 		lipgloss.Left,
-		// title,     // Title at the top
-		panelView, // Panels below title
-		statusBar, // Status bar at bottom
+		panelView,
+		// statusBar,
 	)
+}
+
+func GetMaxVisibleLines(totalHeight int, paddingTopBottom int, borderTopBottom int) int {
+	return totalHeight - (paddingTopBottom + borderTopBottom)
 }

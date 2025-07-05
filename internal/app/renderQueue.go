@@ -7,13 +7,17 @@ import (
 )
 
 // Render Queue's song
-func RenderQueue(m *Model) string {
+func RenderQueue(m *Model, maxHeight int) string {
 	if len(m.Queue) == 0 {
 		return "Queue is empty (press 'a' to add)"
 	}
 
+	lineShow := 0
 	var b strings.Builder
 	for i, entry := range m.Queue {
+		if lineShow >= maxHeight {
+			break
+		}
 		var line string
 
 		if i == m.QueueCursor && m.ActivePanel == 1 {
@@ -31,6 +35,7 @@ func RenderQueue(m *Model) string {
 		}
 
 		b.WriteString(line + "\n")
+		lineShow++
 	}
 	return b.String()
 }
