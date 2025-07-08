@@ -9,6 +9,7 @@ import (
 )
 
 func main() {
+	app.InitSQLite("queue.db")
 	p := tea.NewProgram(&app.Model{
 		CurrentPlaying: -1,
 		QueueCursor:    0,

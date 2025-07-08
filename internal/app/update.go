@@ -85,13 +85,15 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 		// Add song in queue
 		case "a":
-			if len(m.Files) > 0 {
-				m.Queue = append(m.Queue, m.Files[m.Cursor])
-			}
+			m.AddSongInQueue(m.Files[m.Cursor])
+			// if len(m.Files) > 0 {
+			// m.Queue = append(m.Queue, m.Files[m.Cursor])
+			// }
 
 		// Remove song from queue
 		case "d":
-			m.removeFromQueue()
+			m.DeleteSongFromQueue(m.Files[m.QueueCursor])
+			// m.removeFromQueue()
 
 		// Start Playing song
 		case "enter":
