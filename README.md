@@ -9,6 +9,7 @@ A fast, minimalist, and stylish terminal-based music player written in Go, power
 - Automatically loads songs from a predefined directory
 - Play, pause, and stop audio directly from the terminal
 - Add and manage a playback queue interactively
+- Persistent Queue/ Playlist across sessions (sqlite)
 - Navigate between currently queued songs
 - Stylish dual-pane interface with color highlights
 - Mouse-free operation using Vim-style keybindings
@@ -32,7 +33,7 @@ git clone https://github.com/ad1822/mpterm.git
 cd mpterm
 go build -o mpterm ./main.go
 ./mpterm
-````
+```
 
 ---
 
@@ -68,19 +69,16 @@ music-player/
 
 ## TODO
 
-* [ ] UI animations and transitions
-* [ ] Configurable music directory (`~/.config/music-player/config.yaml`)
-* [ ] Volume control (`+`, `-`)
-* [ ] Shuffle and repeat modes
-* [ ] Search/filter songs
-* [ ] Native MPV/Ffplay backend support
-* [ ] Playlist persistence across sessions
+- [x] Playlist persistence across sessions
+- [ ] UI animations and transitions
+- [ ] Configurable music directory (`~/.config/music-player/config.yaml`)
+- [ ] Volume control (`+`, `-`)
+- [ ] Shuffle and repeat modes
+- [ ] Search/filter songs
+- [ ] Native MPV/Ffplay backend support
 
 ---
-
 
 ## Contributing
 
 PRs and feature ideas are welcome. Open an issue to discuss improvements or bugs.
-
-```
