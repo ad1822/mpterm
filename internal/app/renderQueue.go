@@ -20,9 +20,11 @@ func RenderQueue(m *Model, maxHeight int) string {
 		return "Queue is empty (press 'a' to add)"
 	}
 
+	m.Queue = songs
+
 	lineShow := 0
 	var b strings.Builder
-	for i, entry := range songs {
+	for i, entry := range m.Queue {
 		if lineShow >= maxHeight {
 			break
 		}
@@ -66,13 +68,10 @@ func (m *Model) AddSongInQueue(file string) error {
 }
 
 func (m *Model) DeleteSongFromQueue(file string) error {
-	log.Print("Delete Function :", file)
-	stmt, err := DB.Prepare("DELETE FROM queues WHERE song_name = '(?)'")
+	stmt, err := DB.Prepare("DELETE FROM queues WHERE song_name = ?")
 	if err != nil {
-		log.Print(err)
 		return fmt.Errorf("failed to prepare statement: %v", err)
 	}
-	log.Print(stmt)
 
 	defer stmt.Close()
 	_, err = stmt.Exec(file)
