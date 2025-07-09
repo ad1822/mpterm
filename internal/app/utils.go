@@ -14,3 +14,11 @@ func GetFullPath() string {
 	fullPath := filepath.Join(homeDir + "/Music")
 	return fullPath
 }
+
+func GetQueueDBPath() string {
+	dir, _ := os.UserHomeDir()
+	dir = filepath.Join(dir, ".local", "share")
+	dbDir := filepath.Join(dir, "mpterm")
+	os.MkdirAll(dbDir, 0755)
+	return filepath.Join(dbDir, "queue.db")
+}
