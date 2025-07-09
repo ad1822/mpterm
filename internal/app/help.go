@@ -3,7 +3,7 @@ package app
 import (
 	"strings"
 
-	"github.com/ad1822/musicplayer/internal/style"
+	"github.com/ad1822/mpterm/internal/style"
 	"github.com/charmbracelet/lipgloss"
 )
 

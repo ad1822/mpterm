@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/ad1822/musicplayer/internal/app"
+	"github.com/ad1822/mpterm/internal/app"
 	tea "github.com/charmbracelet/bubbletea"
 )
 
