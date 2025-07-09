@@ -100,8 +100,10 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		// Start Playing song
 		case "enter":
 			if m.ActivePanel == 0 && len(m.Files) > 0 {
+				m.PlayingFromQueue = false
 				m.PlaySong(m.Files[m.Cursor], m.Cursor)
 			} else if m.ActivePanel == 1 && len(m.Queue) > 0 {
+				m.PlayingFromQueue = true
 				m.PlaySong(m.Queue[m.QueueCursor], m.QueueCursor)
 			}
 

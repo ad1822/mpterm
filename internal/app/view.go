@@ -8,7 +8,6 @@ import (
 func (m *Model) View() string {
 	mainHeight := m.Height - (m.Height / 10)
 	mainWidth := m.Width - (m.Height / 10)
-	// leftWidth := (mainWidth / 2)
 	rightWidth := mainWidth / 3
 
 	contentHeight := m.Height - 1
@@ -21,7 +20,7 @@ func (m *Model) View() string {
 	}
 
 	leftPanel := lipgloss.NewStyle().
-		Border(lipgloss.NormalBorder()).
+		Border(lipgloss.RoundedBorder()).
 		BorderForeground(lipgloss.Color(leftBorderColor)).
 		Padding(0, 0, 0, 1).
 		Width(mainWidth - rightWidth).
@@ -29,7 +28,7 @@ func (m *Model) View() string {
 		Render(RenderSongList(m, maxVisibleLines))
 
 	rightPanel := lipgloss.NewStyle().
-		Border(lipgloss.NormalBorder()).
+		Border(lipgloss.RoundedBorder()).
 		BorderForeground(lipgloss.Color(rightBorderColor)).
 		Padding(0, 0, 0, 1).
 		Width(rightWidth).

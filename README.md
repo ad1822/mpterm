@@ -4,6 +4,8 @@ A fast, minimalist, and stylish terminal-based music player written in Go, power
 
 ---
 
+![mpterm](image.png)
+
 ## ✨ Features
 
 - Automatically loads songs from a predefined directory
@@ -15,8 +17,6 @@ A fast, minimalist, and stylish terminal-based music player written in Go, power
 - Mouse-free operation using Vim-style keybindings
 - Real-time playback state tracking (playing/paused)
 - PipeWire backend via `pw-play`
-
----
 
 ## Requirements
 

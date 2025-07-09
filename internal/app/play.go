@@ -24,7 +24,7 @@ func (m *Model) PlaySong(filename string, queueIndex int) {
 	m.IsPaused = false
 	m.CurrentPlaying = queueIndex
 
-	go func(currentIndex int) {
+	go func(currentIndex int, fromQueue bool) {
 		err := cmd.Wait()
 		if err != nil {
 			return
@@ -33,16 +33,18 @@ func (m *Model) PlaySong(filename string, queueIndex int) {
 		m.ProcessPid = nil
 		m.CurrentPlaying = -1
 
-		if len(m.Queue) != 0 && m.QueueCursor+1 < len(m.Queue) {
-			m.QueueCursor = m.QueueCursor + 1
+		if fromQueue && m.QueueCursor+1 < len(m.Queue) {
+			m.QueueCursor++
 			m.PlaySong(m.Queue[m.QueueCursor], m.QueueCursor)
-		} else {
+		} else if !fromQueue {
 			nextIndex := currentIndex + 1
-			m.Cursor = nextIndex
-			m.PlaySong(m.Files[nextIndex], nextIndex)
-
+			if nextIndex < len(m.Files) {
+				m.Cursor = nextIndex
+				m.PlaySong(m.Files[nextIndex], nextIndex)
+			}
 		}
-	}(queueIndex)
+	}(queueIndex, m.PlayingFromQueue)
+
 }
 
 // Stop playing song

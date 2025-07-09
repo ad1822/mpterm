@@ -36,7 +36,7 @@ func RenderQueue(m *Model, maxHeight int) string {
 			line = style.NormalStyle.Render("  " + entry)
 		}
 
-		if i == m.CurrentPlaying {
+		if i == m.CurrentPlaying && m.ActivePanel == 1 && m.PlayingFromQueue {
 			if m.IsPaused {
 				line = style.PausedStyle.Render("⏸ " + entry)
 			} else {
