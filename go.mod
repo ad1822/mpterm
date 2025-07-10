@@ -1,4 +1,4 @@
-module github.com/ad1822/mpterm
+module github.com/ad1822/mpterm/v2
 
 go 1.24.3
 

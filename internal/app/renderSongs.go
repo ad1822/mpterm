@@ -4,7 +4,7 @@ import (
 	"os"
 	"strings"
 
-	"github.com/ad1822/mpterm/internal/style"
+	"github.com/ad1822/mpterm/v2/internal/style"
 	tea "github.com/charmbracelet/bubbletea"
 )
 

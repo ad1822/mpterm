@@ -5,7 +5,7 @@ import (
 	"log"
 	"strings"
 
-	"github.com/ad1822/mpterm/internal/style"
+	"github.com/ad1822/mpterm/v2/internal/style"
 )
 
 // Render Queue's song
