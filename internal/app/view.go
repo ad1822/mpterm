@@ -16,7 +16,7 @@ func (m *Model) View() string {
 	if m.ActivePanel == 0 {
 		leftBorderColor = "#cba6f7"
 	} else {
-		rightBorderColor = "#cba6f7"
+		rightBorderColor = "#FFFFFF"
 	}
 
 	leftPanel := lipgloss.NewStyle().
