@@ -16,7 +16,7 @@ func (m *Model) View() string {
 	if m.ActivePanel == 0 {
 		leftBorderColor = "#cba6f7"
 	} else {
-		rightBorderColor = "#FFFFFF"
+		rightBorderColor = "#cba6f7"
 	}
 
 	leftPanel := lipgloss.NewStyle().
@@ -35,19 +35,19 @@ func (m *Model) View() string {
 		Height(mainHeight - 1).
 		Render(RenderQueue(m, maxVisibleLines))
 
-	// statusBar := lipgloss.NewStyle().
-	// 	Width(mainWidth).
-	// 	// Height(mainHeight).
-	// 	Foreground(lipgloss.Color("#FFFFFF")).
-	// 	Align(lipgloss.Center).
-	// 	Render(HelpView())
+	statusBar := lipgloss.NewStyle().
+		Width(mainWidth).
+		// Height(mainHeight).
+		Foreground(lipgloss.Color("#FFFFFF")).
+		Align(lipgloss.Center).
+		Render(HelpView())
 
 	panelView := lipgloss.JoinHorizontal(lipgloss.Left, leftPanel, rightPanel)
 
 	return lipgloss.JoinVertical(
 		lipgloss.Left,
 		panelView,
-		// statusBar,
+		statusBar,
 	)
 }
 
