@@ -31,7 +31,7 @@ func (m *Model) View() string {
 		Border(lipgloss.RoundedBorder()).
 		BorderForeground(lipgloss.Color(rightBorderColor)).
 		Padding(0, 0, 0, 1).
-		Width(rightWidth).
+		Width(rightWidth - 3).
 		Height(mainHeight - 1).
 		Render(RenderQueue(m, maxVisibleLines))
 
