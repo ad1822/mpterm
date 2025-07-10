@@ -18,7 +18,7 @@ func HelpView() string {
 		"d: Remove from queue",
 		"h/l: Prev/Next in queue",
 		"s: Stop",
-		"q/ctrl+c: Quit",
+		// "q/ctrl+c: Quit",
 	}
 
 	var helpText []string
