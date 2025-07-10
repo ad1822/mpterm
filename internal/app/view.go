@@ -35,19 +35,19 @@ func (m *Model) View() string {
 		Height(mainHeight - 1).
 		Render(RenderQueue(m, maxVisibleLines))
 
-	statusBar := lipgloss.NewStyle().
-		Width(mainWidth).
-		// Height(mainHeight).
-		Foreground(lipgloss.Color("#FFFFFF")).
-		Align(lipgloss.Center).
-		Render(HelpView())
+	// statusBar := lipgloss.NewStyle().
+	// 	Width(mainWidth).
+	// 	// Height(mainHeight).
+	// 	Foreground(lipgloss.Color("#FFFFFF")).
+	// 	Align(lipgloss.Center).
+	// 	Render(HelpView())
 
 	panelView := lipgloss.JoinHorizontal(lipgloss.Left, leftPanel, rightPanel)
 
 	return lipgloss.JoinVertical(
 		lipgloss.Left,
 		panelView,
-		statusBar,
+		// statusBar,
 	)
 }
 
