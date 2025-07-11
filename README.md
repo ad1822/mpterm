@@ -29,6 +29,10 @@ A fast, minimalist, and stylish terminal-based music player written in Go, power
 ## Installation
 
 ```bash
+go install github.com/ad1822/mpterm@latest
+```
+
+```bash
 git clone https://github.com/ad1822/mpterm.git
 cd mpterm
 go build -o mpterm ./main.go
@@ -39,17 +43,17 @@ go build -o mpterm ./main.go
 
 ## ⌨️ Keybindings
 
-| Key            | Action                           |
-| -------------- | -------------------------------- |
-| `j` / `k`      | Move up/down in the list         |
-| `Tab`          | Switch between song list & queue |
-| `Enter`        | Play selected song               |
-| `Space`        | Pause/Resume current song        |
-| `a`            | Add selected song to queue       |
-| `d`            | Remove song from queue           |
-| `h` / `l`      | Play previous/next in queue      |
-| `s`            | Stop current song                |
-| `q` / `Ctrl+C` | Quit the player                  |
+| Key            | Action                               |
+| -------------- | ------------------------------------ |
+| `j` / `k`      | Move up/down in the list             |
+| `Tab`          | Switch between song list & queue     |
+| `Enter`        | Play selected song                   |
+| `Space`        | Pause/Resume current song            |
+| `a`            | Add selected song to queue           |
+| `d`            | Remove song from queue               |
+| `h` / `l`      | Play previous/next from active panel |
+| `s`            | Stop current song                    |
+| `q` / `Ctrl+C` | Quit the player                      |
 
 ---
 
