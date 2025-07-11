@@ -112,8 +112,14 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			m.togglePause()
 
 		// Play next song from queue
-		case "l":
-			if len(m.Queue) > 0 {
+		case "l": // Play next
+			if m.ActivePanel == 0 && len(m.Files) > 0 {
+				next := m.CurrentPlaying + 1
+				if next < len(m.Files) {
+					m.PlaySong(m.Files[next], next)
+					m.Cursor = next
+				}
+			} else if m.ActivePanel == 1 && len(m.Queue) > 0 {
 				next := m.CurrentPlaying + 1
 				if next < len(m.Queue) {
 					m.PlaySong(m.Queue[next], next)
@@ -121,9 +127,14 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				}
 			}
 
-		// Play previous song from queue
-		case "h":
-			if len(m.Queue) > 0 {
+		case "h": // Play previous
+			if m.ActivePanel == 0 && len(m.Files) > 0 {
+				prev := m.CurrentPlaying - 1
+				if prev >= 0 {
+					m.PlaySong(m.Files[prev], prev)
+					m.Cursor = prev
+				}
+			} else if m.ActivePanel == 1 && len(m.Queue) > 0 {
 				prev := m.CurrentPlaying - 1
 				if prev >= 0 {
 					m.PlaySong(m.Queue[prev], prev)

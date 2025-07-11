@@ -54,7 +54,7 @@ func (m *Model) stopPlayback() {
 		_ = m.ProcessPid.Release()
 		m.ProcessPid = nil
 	}
-	m.CurrentPlaying = -1
+	// m.CurrentPlaying = -1
 	m.CurrentSong = ""
 	m.IsPaused = false
 }
