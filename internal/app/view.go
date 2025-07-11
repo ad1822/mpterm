@@ -1,53 +1,84 @@
 package app
 
 import (
+	"strings"
+
 	"github.com/charmbracelet/lipgloss"
 )
 
 // View
 func (m *Model) View() string {
-	mainHeight := m.Height - (m.Height / 10)
-	mainWidth := m.Width - (m.Height / 10)
-	rightWidth := mainWidth / 3
+	mainHeight := m.Height - (m.Height / 20)
+	mainWidth := m.Width - (m.Height / 20)
 
-	contentHeight := m.Height - 1
+	rightPanelRatio := 0.4
+	rightWidth := int(float64(mainWidth) * rightPanelRatio)
+	leftWidth := mainWidth - rightWidth
+
+	contentHeight := mainHeight - 1
 	maxVisibleLines := contentHeight - 3
-	leftBorderColor, rightBorderColor := "0", "0"
+
+	leftColor, rightColor := "0", "0"
 	if m.ActivePanel == 0 {
-		leftBorderColor = "#cba6f7"
+		leftColor = "#cba6f7"
 	} else {
-		rightBorderColor = "#cba6f7"
+		rightColor = "#cba6f7"
 	}
+
+	// Left panel: Songs
+	leftTitle := " Songs "
+	leftTitlePrefix := "╭─" + leftTitle
+	leftDashes := leftWidth - lipgloss.Width(leftTitlePrefix) - 1
+	if leftDashes < 0 {
+		leftDashes = 0
+	}
+	leftTopLine := leftTitlePrefix + strings.Repeat("─", leftDashes) + "╮"
+	styledLeftTop := lipgloss.NewStyle().
+		Width(leftWidth).
+		Foreground(lipgloss.Color(leftColor)).
+		Render(leftTopLine)
 
 	leftPanel := lipgloss.NewStyle().
 		Border(lipgloss.RoundedBorder()).
-		BorderForeground(lipgloss.Color(leftBorderColor)).
-		Padding(0, 0, 0, 1).
-		Width(mainWidth - rightWidth).
+		BorderTop(false).
+		Padding(1, 0, 0, 1).
+		BorderForeground(lipgloss.Color(leftColor)).
+		Width(leftWidth - 2).
 		Height(mainHeight - 1).
 		Render(RenderSongList(m, maxVisibleLines))
 
+	fullLeftPanel := lipgloss.JoinVertical(lipgloss.Left, styledLeftTop, leftPanel)
+
+	// Right panel: Queue
+	rightTitle := " Queue "
+	rightTitlePrefix := "╭─" + rightTitle
+	rightDashes := rightWidth - lipgloss.Width(rightTitlePrefix) - 1
+	if rightDashes < 0 {
+		rightDashes = 0
+	}
+	rightTopLine := rightTitlePrefix + strings.Repeat("─", rightDashes) + "╮"
+	styledRightTop := lipgloss.NewStyle().
+		Width(rightWidth).
+		Foreground(lipgloss.Color(rightColor)).
+		Render(rightTopLine)
+
 	rightPanel := lipgloss.NewStyle().
 		Border(lipgloss.RoundedBorder()).
-		BorderForeground(lipgloss.Color(rightBorderColor)).
-		Padding(0, 0, 0, 1).
-		Width(rightWidth - 3).
+		BorderTop(false).
+		Padding(1, 0, 0, 1).
+		BorderForeground(lipgloss.Color(rightColor)).
+		Width(rightWidth - 2).
 		Height(mainHeight - 1).
 		Render(RenderQueue(m, maxVisibleLines))
 
-	statusBar := lipgloss.NewStyle().
-		Width(mainWidth).
-		// Height(mainHeight).
-		Foreground(lipgloss.Color("#FFFFFF")).
-		Align(lipgloss.Center).
-		Render(HelpView())
+	fullRightPanel := lipgloss.JoinVertical(lipgloss.Left, styledRightTop, rightPanel)
 
-	panelView := lipgloss.JoinHorizontal(lipgloss.Left, leftPanel, rightPanel)
+	// Combine panels
+	panelLayout := lipgloss.JoinHorizontal(lipgloss.Left, fullLeftPanel, fullRightPanel)
 
 	return lipgloss.JoinVertical(
 		lipgloss.Left,
-		panelView,
-		statusBar,
+		panelLayout,
 	)
 }
 
