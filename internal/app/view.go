@@ -6,26 +6,8 @@ import (
 	"github.com/charmbracelet/lipgloss"
 )
 
-// View
-func (m *Model) View() string {
-	mainHeight := m.Height - (m.Height / 20)
-	mainWidth := m.Width - (m.Height / 20)
-
-	rightPanelRatio := 0.4
-	rightWidth := int(float64(mainWidth) * rightPanelRatio)
-	leftWidth := mainWidth - rightWidth
-
-	contentHeight := mainHeight - 1
-	maxVisibleLines := contentHeight - 3
-
-	leftColor, rightColor := "0", "0"
-	if m.ActivePanel == 0 {
-		leftColor = "#cba6f7"
-	} else {
-		rightColor = "#cba6f7"
-	}
-
-	// Left panel: Songs
+// Left panel: Songs
+func LeftPanel(m *Model, leftWidth int, mainHeight int, leftColor string, maxVisibleLines int) string {
 	leftTitle := " Songs "
 	leftTitlePrefix := "╭─" + leftTitle
 	leftDashes := leftWidth - lipgloss.Width(leftTitlePrefix) - 1
@@ -47,8 +29,10 @@ func (m *Model) View() string {
 		Height(mainHeight - 1).
 		Render(RenderSongList(m, maxVisibleLines))
 
-	fullLeftPanel := lipgloss.JoinVertical(lipgloss.Left, styledLeftTop, leftPanel)
+	return lipgloss.JoinVertical(lipgloss.Left, styledLeftTop, leftPanel)
+}
 
+func RightPanel(m *Model, rightWidth int, mainHeight int, rightColor string, maxVisibleLines int) string {
 	// Right panel: Queue
 	rightTitle := " Queue "
 	rightTitlePrefix := "╭─" + rightTitle
@@ -71,10 +55,31 @@ func (m *Model) View() string {
 		Height(mainHeight - 1).
 		Render(RenderQueue(m, maxVisibleLines))
 
-	fullRightPanel := lipgloss.JoinVertical(lipgloss.Left, styledRightTop, rightPanel)
+	return lipgloss.JoinVertical(lipgloss.Left, styledRightTop, rightPanel)
+
+}
+
+// View
+func (m *Model) View() string {
+	mainHeight := m.Height - (m.Height / 20)
+	mainWidth := m.Width - (m.Height / 20)
+
+	rightPanelRatio := 0.4
+	rightWidth := int(float64(mainWidth) * rightPanelRatio)
+	leftWidth := mainWidth - rightWidth
+
+	contentHeight := mainHeight - 1
+	maxVisibleLines := contentHeight - 3
+
+	leftColor, rightColor := "0", "0"
+	if m.ActivePanel == 0 {
+		leftColor = "#cba6f7"
+	} else {
+		rightColor = "#cba6f7"
+	}
 
 	// Combine panels
-	panelLayout := lipgloss.JoinHorizontal(lipgloss.Left, fullLeftPanel, fullRightPanel)
+	panelLayout := lipgloss.JoinHorizontal(lipgloss.Left, LeftPanel(m, leftWidth, mainHeight, leftColor, maxVisibleLines), RightPanel(m, rightWidth, mainHeight, rightColor, maxVisibleLines))
 
 	return lipgloss.JoinVertical(
 		lipgloss.Left,
