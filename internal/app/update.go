@@ -94,7 +94,9 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 		// Remove song from queue
 		case "d":
-			if m.ActivePanel == 1 {
+			if len(m.Queue) == 0 {
+
+			} else if m.ActivePanel == 1 {
 				m.DeleteSongFromQueue(m.Queue[m.QueueCursor])
 				m.removeFromQueue()
 			}
