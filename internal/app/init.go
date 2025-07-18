@@ -8,7 +8,7 @@ import (
 
 // Init Method for Initialization
 func (m *Model) Init() tea.Cmd {
-	path := GetFullPath()
-	log.Print(path)
-	return ReadFilesCmd(path)
+	m.CurrentPath = GetFullPath()
+	log.Print(m.CurrentPath)
+	return ReadFilesCmd(m.CurrentPath)
 }

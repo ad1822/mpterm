@@ -4,6 +4,8 @@ import (
 	"encoding/json"
 	"log"
 	"net"
+	"os"
+	"path/filepath"
 
 	tea "github.com/charmbracelet/bubbletea"
 )
@@ -153,6 +155,34 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		// Stop playing Song
 		case "s":
 			m.stopPlayback()
+
+		// Go into the directory
+		case "o":
+			selectedFile := filepath.Join(m.CurrentPath, m.Files[m.Cursor])
+			fileInfo, err := os.Stat(selectedFile)
+			if err != nil {
+				log.Println("Error checking file:", err)
+				return m, nil
+			}
+
+			if fileInfo.IsDir() {
+				m.CurrentPath = selectedFile
+
+				// Reset state
+				m.Cursor = 0
+				m.ScrollOffset = 0
+				m.CurrentPlaying = -1
+				m.CurrentSong = ""
+				m.IsPaused = false
+				m.PlayingFromQueue = false
+
+				return m, ReadFilesCmd(m.CurrentPath)
+			}
+
+			// If it's a file, play it
+			m.PlayingFromQueue = false
+			m.PlaySong(m.Files[m.Cursor], m.Cursor)
+
 		}
 	}
 
