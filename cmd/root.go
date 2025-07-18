@@ -42,8 +42,8 @@ var rootCmd = &cobra.Command{
 			fmt.Printf("  %-12s : %s\n", key("Space"), desc("Pause/Resume current song"))
 			fmt.Printf("  %-12s : %s\n", key("← / →"), desc("Seek backward/forward 5s"))
 			fmt.Printf("  %-12s : %s\n", key("h / l"), desc("Play previous/next song"))
+			fmt.Printf("  %-12s : %s\n", key("o"), desc("Open directory"))
 			fmt.Printf("  %-12s : %s\n", key("s"), desc("Stop current song"))
-
 			return
 		}
 		app.InitSQLite(app.GetQueueDBPath())

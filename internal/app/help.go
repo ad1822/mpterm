@@ -17,8 +17,9 @@ func HelpView() string {
 		"a: Add to queue",
 		"d: Remove from queue",
 		"h/l: Prev/Next in queue",
+		"←/→: Seek -/+ 5s",
+		"o: Open directory",
 		"s: Stop",
-		// "q/ctrl+c: Quit",
 	}
 
 	var helpText []string

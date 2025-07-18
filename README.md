@@ -53,6 +53,7 @@ go build -o mpterm ./main.go
 | `d`            | Remove song from queue               |
 | `h` / `l`      | Play previous/next from active panel |
 | `s`            | Stop current song                    |
+| `o`            | Open selected folder                 |
 | `q` / `Ctrl+C` | Quit the player                      |
 
 ---
