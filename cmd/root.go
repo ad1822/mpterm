@@ -32,16 +32,18 @@ var rootCmd = &cobra.Command{
 
 			fmt.Println()
 			fmt.Println(color.New(color.FgMagenta).Sprint("Keybindings:"))
-			fmt.Printf("  %-10s : %s\n", key("q"), desc("Quit"))
-			fmt.Printf("  %-10s : %s\n", key("j/k"), desc("Move up/down"))
-			fmt.Printf("  %-10s : %s\n", key("Tab"), desc("Switch between song list & queue"))
-			fmt.Printf("  %-10s : %s\n", key("Space"), desc("Pause/Resume current song"))
-			fmt.Printf("  %-10s : %s\n", key("a"), desc("Add selected song to queue"))
-			fmt.Printf("  %-10s : %s\n", key("d"), desc("Remove song from queue"))
-			fmt.Printf("  %-10s : %s\n", key("h/l"), desc("Play previous/next from active panel"))
-			fmt.Printf("  %-10s : %s\n", key("s"), desc("Stop current song"))
-			fmt.Printf("  %-10s : %s\n", key("q/Ctrl+C"), desc("Quit the player"))
-
+			fmt.Printf("  %-12s : %s\n", key("q / Ctrl+C"), desc("Quit the player"))
+			fmt.Printf("  %-12s : %s\n", key("Tab"), desc("Switch between song list & queue"))
+			fmt.Printf("  %-12s : %s\n", key("↑ / k"), desc("Move up"))
+			fmt.Printf("  %-12s : %s\n", key("↓ / j"), desc("Move down"))
+			fmt.Printf("  %-12s : %s\n", key("a"), desc("Add selected song to queue"))
+			fmt.Printf("  %-12s : %s\n", key("d"), desc("Remove song from queue"))
+			fmt.Printf("  %-12s : %s\n", key("Enter"), desc("Play selected song"))
+			fmt.Printf("  %-12s : %s\n", key("Space"), desc("Pause/Resume current song"))
+			fmt.Printf("  %-12s : %s\n", key("← / →"), desc("Seek backward/forward 5s"))
+			fmt.Printf("  %-12s : %s\n", key("h / l"), desc("Play previous/next song"))
+			fmt.Printf("  %-12s : %s\n", key("o"), desc("Open directory"))
+			fmt.Printf("  %-12s : %s\n", key("s"), desc("Stop current song"))
 			return
 		}
 		app.InitSQLite(app.GetQueueDBPath())

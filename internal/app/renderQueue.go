@@ -3,6 +3,7 @@ package app
 import (
 	"fmt"
 	"log"
+	"path/filepath"
 	"strings"
 
 	"github.com/ad1822/mpterm/internal/style"
@@ -29,18 +30,21 @@ func RenderQueue(m *Model, maxHeight int) string {
 			break
 		}
 		var line string
+		// Show only the base name of the file
+		base := filepath.Base(entry)
 
 		if i == m.QueueCursor && m.ActivePanel == 1 {
-			line = style.QueueCursorStyle.Render("  " + entry)
+			line = style.QueueCursorStyle.Render("  " + base)
+
 		} else {
-			line = style.NormalStyle.Render("  " + entry)
+			line = style.NormalStyle.Render("  " + base)
 		}
 
 		if i == m.CurrentPlaying && m.ActivePanel == 1 && m.PlayingFromQueue {
 			if m.IsPaused {
-				line = style.PausedStyle.Render("⏸ " + entry)
+				line = style.PausedStyle.Render("⏸ " + base)
 			} else {
-				line = style.PlayingStyle.Render("▶ " + entry)
+				line = style.PlayingStyle.Render("▶ " + base)
 			}
 		}
 
@@ -52,6 +56,14 @@ func RenderQueue(m *Model, maxHeight int) string {
 
 // Add Songs in DB
 func (m *Model) AddSongInQueue(file string) error {
+	var fullPath string
+
+	// Check if the file is absolute or relative
+	if filepath.IsAbs(file) {
+		fullPath = file
+	} else {
+		fullPath = filepath.Join(m.CurrentPath, file)
+	}
 
 	stmt, err := DB.Prepare("INSERT INTO queues(song_name) VALUES(?)")
 	if err != nil {
@@ -59,7 +71,7 @@ func (m *Model) AddSongInQueue(file string) error {
 	}
 	defer stmt.Close()
 
-	_, err = stmt.Exec(file)
+	_, err = stmt.Exec(fullPath)
 	if err != nil {
 		return fmt.Errorf("failed to insert song: %v", err)
 	}

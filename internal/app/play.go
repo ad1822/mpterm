@@ -2,6 +2,7 @@ package app
 
 import (
 	"os/exec"
+	"path/filepath"
 	"syscall"
 )
 
@@ -13,8 +14,14 @@ func (m *Model) PlaySong(filename string, queueIndex int) {
 		m.ProcessPid = nil
 	}
 
+	var fullPath string
+	if filepath.IsAbs(filename) {
+		fullPath = filename
+	} else {
+		fullPath = filepath.Join(m.CurrentPath, filename)
+	}
 	// path := filepath.Join(GetFullPath())
-	cmd := exec.Command("mpv", "--input-ipc-server=/tmp/mpvsock", GetFullPath()+"/"+filename)
+	cmd := exec.Command("mpv", "--input-ipc-server=/tmp/mpvsock", fullPath)
 	if err := cmd.Start(); err != nil {
 		return
 	}

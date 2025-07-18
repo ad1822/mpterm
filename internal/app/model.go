@@ -18,6 +18,7 @@ type Model struct {
 	Queue            []string         // User-managed playback queue
 	QueueCursor      int              // Current cursor position within the queue panel
 	ActivePanel      int              // 0: song list panel active, 1: queue panel active
+	CurrentPath      string           // Current path for music files
 	ScrollOffset     int
 	PlayingFromQueue bool
 }
